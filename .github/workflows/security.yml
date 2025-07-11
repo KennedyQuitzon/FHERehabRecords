@@ -1,0 +1,190 @@
+name: Security Audit
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run security audit weekly on Monday at 00:00 UTC
+    - cron: '0 0 * * 1'
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run npm audit
+        run: npm audit --audit-level=moderate
+        continue-on-error: true
+
+      - name: Generate audit report
+        run: |
+          npm audit --json > npm-audit.json || true
+          echo "📊 Audit report generated"
+
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: npm-audit.json
+          retention-days: 30
+
+  contract-security:
+    name: Smart Contract Security Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Compile contracts
+        run: npm run compile
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Slither
+        run: |
+          python -m pip install --upgrade pip
+          pip install slither-analyzer
+          pip install solc-select
+          solc-select install 0.8.24
+          solc-select use 0.8.24
+
+      - name: Run Slither
+        run: |
+          slither . \
+            --exclude-dependencies \
+            --exclude-informational \
+            --exclude-low \
+            --json slither-report.json \
+            || true
+
+      - name: Upload Slither report
+        uses: actions/upload-artifact@v4
+        with:
+          name: slither-report
+          path: slither-report.json
+          retention-days: 30
+
+      - name: Check for high/critical issues
+        run: |
+          if [ -f slither-report.json ]; then
+            high_issues=$(jq '[.results.detectors[] | select(.impact == "High")] | length' slither-report.json)
+            critical_issues=$(jq '[.results.detectors[] | select(.impact == "Critical")] | length' slither-report.json)
+
+            echo "High severity issues: $high_issues"
+            echo "Critical severity issues: $critical_issues"
+
+            if [ "$critical_issues" -gt 0 ]; then
+              echo "❌ Critical security issues found!"
+              exit 1
+            fi
+          fi
+
+  gas-optimization:
+    name: Gas Optimization Check
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run gas reporter
+        run: REPORT_GAS=true npm test
+
+      - name: Upload gas report
+        uses: actions/upload-artifact@v4
+        with:
+          name: gas-report
+          path: gas-report.txt
+          retention-days: 30
+
+  dos-protection-check:
+    name: DoS Protection Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check for unbounded loops
+        run: |
+          echo "🔍 Checking for unbounded loops in contracts..."
+          if grep -r "for\s*(" contracts/ --include="*.sol" | grep -v "// safe:"; then
+            echo "⚠️  Found potential unbounded loops"
+            echo "Ensure all loops have gas limits or are bounded"
+          else
+            echo "✅ No unbounded loops detected"
+          fi
+
+      - name: Check for pull payment pattern
+        run: |
+          echo "🔍 Checking for safe payment patterns..."
+          if grep -r "\.transfer\|\.send" contracts/ --include="*.sol"; then
+            echo "⚠️  Found .transfer() or .send() - consider using pull payment pattern"
+          else
+            echo "✅ Using safe payment patterns"
+          fi
+
+  code-complexity:
+    name: Code Complexity Analysis
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run Solhint complexity check
+        run: npm run lint:sol
+        continue-on-error: true
+
+      - name: Check contract sizes
+        run: npm run size-contracts

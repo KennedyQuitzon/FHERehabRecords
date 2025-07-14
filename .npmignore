@@ -1,0 +1,30 @@
+# Test files
+test/
+*.test.js
+coverage/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Development files
+.env.example
+.gitignore
+.eslintrc.*
+.prettierrc.*
+
+# Scripts (keep only necessary ones)
+scripts/simulate.js
+scripts/interact.js
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Cache
+cache/
+.cache/

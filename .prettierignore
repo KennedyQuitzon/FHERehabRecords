@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+artifacts/
+cache/
+coverage/
+dist/
+build/
+out/
+typechain/
+typechain-types/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+
+# Generated files
+gas-report.txt
+coverage.json
+deployment.json
+
+# Other
+*.md

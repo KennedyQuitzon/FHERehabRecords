@@ -1,0 +1,16 @@
+# Directories
+node_modules/
+artifacts/
+cache/
+coverage/
+typechain/
+typechain-types/
+
+# Build outputs
+dist/
+build/
+out/
+
+# Dependencies
+**/node_modules
+**/artifacts

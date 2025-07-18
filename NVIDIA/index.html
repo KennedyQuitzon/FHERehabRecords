@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Private Rehabilitation Records</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/5.7.2/ethers.umd.min.js"></script>
+    <script>
+        // Backup ethers loading
+        if (typeof ethers === 'undefined') {
+            document.write('<script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"><\/script>');
+        }
+    </script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            color: #1a365d;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+
+        .connection-status {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .status-disconnected {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .status-connected {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .connect-btn {
+            background: linear-gradient(135deg, #2b6cb0 0%, #2c5282 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-bottom: 30px;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .connect-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f7fafc;
+            border-radius: 10px;
+            padding: 5px;
+            margin-bottom: 30px;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 20px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .tab.active {
+            background: white;
+            color: #2b6cb0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #2b6cb0;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #2b6cb0 0%, #2c5282 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #718096;
+        }
+
+        .records-grid {
+            display: grid;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .record-card {
+            background: #f7fafc;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            transition: border-color 0.3s;
+        }
+
+        .record-card:hover {
+            border-color: #2b6cb0;
+        }
+
+        .record-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .record-id {
+            font-weight: 700;
+            color: #2b6cb0;
+            font-size: 1.1rem;
+        }
+
+        .record-status {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .status-inactive {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .record-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            border-left: 4px solid #2b6cb0;
+        }
+
+        .detail-label {
+            font-size: 0.8rem;
+            color: #718096;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .detail-value {
+            font-size: 1rem;
+            color: #2d3748;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+        }
+
+        .error {
+            background: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #c53030;
+        }
+
+        .success {
+            background: #c6f6d5;
+            color: #2f855a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #2f855a;
+        }
+
+        .info-card {
+            background: #ebf8ff;
+            border: 2px solid #bee3f8;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .info-title {
+            font-weight: 700;
+            color: #2b6cb0;
+            margin-bottom: 10px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+
+            h1 {
+                font-size: 2rem;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏥 Private Rehabilitation Records</h1>
+            <p class="subtitle">Secure, encrypted rehabilitation tracking on blockchain</p>
+            <div id="connectionStatus" class="connection-status status-disconnected">
+                Not Connected
+            </div>
+            <br>
+            <button id="connectButton" class="connect-btn">Connect Wallet</button>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('overview')">Overview</div>
+            <div class="tab" onclick="switchTab('therapist')">Therapist</div>
+            <div class="tab" onclick="switchTab('patient')">Patient</div>
+            <div class="tab" onclick="switchTab('records')">Records</div>
+        </div>
+
+        <div id="overview" class="tab-content active">
+            <div class="info-card">
+                <div class="info-title">🔐 System Information</div>
+                <p>This application manages private rehabilitation records using Zama's FHE (Fully Homomorphic Encryption) technology on Ethereum Sepolia testnet.</p>
+                <br>
+                <div class="two-column">
+                    <div>
+                        <strong>Contract Address:</strong><br>
+                        <input type="text" id="contractAddress" placeholder="Enter contract address" value="0x9C434EDeBB2aA48400f96167977B88B070bb74f3">
+                    </div>
+                    <div>
+                        <strong>Connected Account:</strong><br>
+                        <span id="accountDisplay">Not connected</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-card">
+                <div class="info-title">📊 System Statistics</div>
+                <div class="two-column">
+                    <div class="detail-item">
+                        <div class="detail-label">Total Records</div>
+                        <div class="detail-value" id="totalRecords">-</div>
+                    </div>
+                    <div class="detail-item">
+                        <div class="detail-label">Contract Owner</div>
+                        <div class="detail-value" id="contractOwner">-</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="therapist" class="tab-content">
+            <div class="info-card">
+                <div class="info-title">👨‍⚕️ Therapist Functions</div>
+                <p>Authorized therapists can create and manage patient records.</p>
+            </div>
+
+            <div class="form-group">
+                <label>Therapist Address</label>
+                <input type="text" id="therapistAddress" placeholder="0x...">
+            </div>
+
+            <div class="form-group">
+                <label>License Number</label>
+                <input type="text" id="licenseNumber" placeholder="Enter license number">
+            </div>
+
+            <button class="btn" onclick="authorizeTherapist()">Authorize Therapist</button>
+            <button class="btn btn-secondary" onclick="getTherapistProfile()">Get Profile</button>
+
+            <div class="form-group" style="margin-top: 30px;">
+                <label>Patient Address for Registration</label>
+                <input type="text" id="patientAddressReg" placeholder="0x...">
+            </div>
+
+            <div class="form-group">
+                <label>Assigned Therapist Address</label>
+                <input type="text" id="assignedTherapistAddress" placeholder="0x...">
+            </div>
+
+            <button class="btn" onclick="registerPatient()">Register Patient</button>
+
+            <div id="therapistResults"></div>
+        </div>
+
+        <div id="patient" class="tab-content">
+            <div class="info-card">
+                <div class="info-title">🏃‍♀️ Patient Functions</div>
+                <p>View patient profiles and records.</p>
+            </div>
+
+            <div class="form-group">
+                <label>Patient Address</label>
+                <input type="text" id="patientAddressView" placeholder="0x...">
+            </div>
+
+            <button class="btn" onclick="getPatientProfile()">Get Patient Profile</button>
+            <button class="btn btn-secondary" onclick="getPatientRecords()">Get Patient Records</button>
+
+            <div id="patientResults"></div>
+        </div>
+
+        <div id="records" class="tab-content">
+            <div class="info-card">
+                <div class="info-title">📝 Record Management</div>
+                <p>Create and manage rehabilitation records with encrypted data.</p>
+            </div>
+
+            <div class="two-column">
+                <div>
+                    <div class="form-group">
+                        <label>Patient Address</label>
+                        <input type="text" id="recordPatientAddress" placeholder="0x...">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Exercise Intensity (0-100)</label>
+                        <input type="number" id="exerciseIntensity" min="0" max="100" placeholder="75">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Pain Level (0-10)</label>
+                        <input type="number" id="painLevel" min="0" max="10" placeholder="3">
+                    </div>
+                </div>
+
+                <div>
+                    <div class="form-group">
+                        <label>Mobility Score (0-100)</label>
+                        <input type="number" id="mobilityScore" min="0" max="100" placeholder="85">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Exercise Type</label>
+                        <select id="exerciseType">
+                            <option value="1">Strength Training</option>
+                            <option value="2">Cardio</option>
+                            <option value="3">Flexibility</option>
+                            <option value="4">Balance</option>
+                            <option value="5">Coordination</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Session Duration (minutes)</label>
+                        <input type="number" id="sessionDuration" min="1" placeholder="45">
+                    </div>
+                </div>
+            </div>
+
+            <button class="btn" onclick="createRecord()">Create Record</button>
+
+            <div style="margin-top: 30px;">
+                <div class="form-group">
+                    <label>Record ID for Viewing</label>
+                    <input type="number" id="recordIdView" placeholder="1">
+                </div>
+
+                <button class="btn btn-secondary" onclick="getRecordMetadata()">Get Record Metadata</button>
+                <button class="btn btn-secondary" onclick="deactivateRecord()">Deactivate Record</button>
+            </div>
+
+            <div id="recordResults"></div>
+        </div>
+    </div>
+
+    <script>
+        let contract;
+        let signer;
+        let provider;
+
+        const CONTRACT_ABI = [
+            "function owner() view returns (address)",
+            "function recordCounter() view returns (uint256)",
+            "function authorizeTherapist(address therapistAddress, string licenseNumber)",
+            "function registerPatient(address patientAddress, address assignedTherapist)",
+            "function createRecord(address patientAddress, uint32 exerciseIntensity, uint32 painLevel, uint32 mobilityScore, uint8 exerciseType, uint32 sessionDuration)",
+            "function getRecordMetadata(uint256 recordId) view returns (bool isActive, uint256 timestamp, address patient, address therapist)",
+            "function getPatientRecords(address patientAddress) view returns (uint256[])",
+            "function getTherapistRecords(address therapistAddress) view returns (uint256[])",
+            "function getPatientProfile(address patientAddress) view returns (bool isRegistered, uint256 totalSessions, uint256 registrationTime, address assignedTherapist)",
+            "function getTherapistProfile(address therapistAddress) view returns (bool isAuthorized, string licenseNumber, uint256 registrationTime)",
+            "function deactivateRecord(uint256 recordId)",
+            "function getTotalRecords() view returns (uint256)",
+            "function isRecordActive(uint256 recordId) view returns (bool)",
+            "event RecordCreated(uint256 indexed recordId, address indexed patient, address indexed therapist)",
+            "event TherapistAuthorized(address indexed therapist, string licenseNumber)",
+            "event PatientRegistered(address indexed patient, address indexed therapist)"
+        ];
+
+        async function connectWallet() {
+            try {
+                // Check if ethers is loaded
+                if (typeof ethers === 'undefined') {
+                    throw new Error('Ethers.js library not loaded. Please refresh the page.');
+                }
+
+                if (typeof window.ethereum !== 'undefined') {
+                    const connectBtn = document.getElementById('connectButton');
+                    connectBtn.disabled = true;
+                    connectBtn.textContent = 'Connecting...';
+
+                    await window.ethereum.request({ method: 'eth_requestAccounts' });
+
+                    provider = new ethers.providers.Web3Provider(window.ethereum);
+                    signer = provider.getSigner();
+
+                    const address = await signer.getAddress();
+                    const network = await provider.getNetwork();
+
+                    if (network.chainId !== 11155111) {
+                        throw new Error('Please connect to Sepolia testnet');
+                    }
+
+                    document.getElementById('connectionStatus').textContent = 'Connected';
+                    document.getElementById('connectionStatus').className = 'connection-status status-connected';
+                    document.getElementById('accountDisplay').textContent = `${address.substring(0, 6)}...${address.substring(38)}`;
+
+                    connectBtn.textContent = 'Connected';
+
+                    initializeContract();
+                    loadSystemStats();
+                } else {
+                    throw new Error('MetaMask not found');
+                }
+            } catch (error) {
+                showError('Connection failed: ' + error.message);
+                document.getElementById('connectButton').disabled = false;
+                document.getElementById('connectButton').textContent = 'Connect Wallet';
+            }
+        }
+
+        function initializeContract() {
+            const contractAddress = document.getElementById('contractAddress').value;
+            if (contractAddress && contractAddress !== '0x...') {
+                contract = new ethers.Contract(contractAddress, CONTRACT_ABI, signer);
+                console.log('Contract initialized');
+            }
+        }
+
+        async function loadSystemStats() {
+            try {
+                if (!contract) return;
+
+                const totalRecords = await contract.getTotalRecords();
+                const owner = await contract.owner();
+
+                document.getElementById('totalRecords').textContent = totalRecords.toString();
+                document.getElementById('contractOwner').textContent = `${owner.substring(0, 6)}...${owner.substring(38)}`;
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        async function authorizeTherapist() {
+            try {
+                if (!contract) {
+                    initializeContract();
+                    if (!contract) throw new Error('Contract not initialized');
+                }
+
+                const therapistAddress = document.getElementById('therapistAddress').value;
+                const licenseNumber = document.getElementById('licenseNumber').value;
+
+                if (!therapistAddress || !licenseNumber) {
+                    throw new Error('Please fill in all fields');
+                }
+
+                const tx = await contract.authorizeTherapist(therapistAddress, licenseNumber);
+                showSuccess('Transaction sent. Waiting for confirmation...');
+
+                await tx.wait();
+                showSuccess('Therapist authorized successfully!');
+
+                // Clear form
+                document.getElementById('therapistAddress').value = '';
+                document.getElementById('licenseNumber').value = '';
+
+            } catch (error) {
+                showError('Error authorizing therapist: ' + error.message);
+            }
+        }
+
+        async function getTherapistProfile() {
+            try {
+                if (!contract) {
+                    initializeContract();
+                    if (!contract) throw new Error('Contract not initialized');
+                }
+
+                const therapistAddress = document.getElementById('therapistAddress').value;
+                if (!therapistAddress) throw new Error('Please enter therapist address');
+
+                const profile = await contract.getTherapistProfile(therapistAddress);
+
+                const resultDiv = document.getElementById('therapistResults');
+                resultDiv.innerHTML = `
+                    <div class="info-card">
+                        <div class="info-title">Therapist Profile</div>
+                        <div class="detail-item">
+                            <div class="detail-label">Authorized</div>
+                            <div class="detail-value">${profile[0] ? 'Yes' : 'No'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">License Number</div>
+                            <div class="detail-value">${profile[1]}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Registration Time</div>
+                            <div class="detail-value">${new Date(profile[2] * 1000).toLocaleString()}</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                showError('Error getting therapist profile: ' + error.message);
+            }
+        }
+
+        async function registerPatient() {
+            try {
+                if (!contract) {
+                    initializeContract();
+                    if (!contract) throw new Error('Contract not initialized');
+                }
+
+                const patientAddress = document.getElementById('patientAddressReg').value;
+                const therapistAddress = document.getElementById('assignedTherapistAddress').value;
+
+                if (!patientAddress || !therapistAddress) {
+                    throw new Error('Please fill in all fields');
+                }
+
+                const tx = await contract.registerPatient(patientAddress, therapistAddress);
+                showSuccess('Transaction sent. Waiting for confirmation...');
+
+                await tx.wait();
+                showSuccess('Patient registered successfully!');
+
+                // Clear form
+                document.getElementById('patientAddressReg').value = '';
+                document.getElementById('assignedTherapistAddress').value = '';
+
+            } catch (error) {
+                showError('Error registering patient: ' + error.message);
+            }
+        }
+
+        async function getPatientProfile() {
+            try {
+                if (!contract) {
+                    initializeContract();
+                    if (!contract) throw new Error('Contract not initialized');
+                }
+
+                const patientAddress = document.getElementById('patientAddressView').value;
+                if (!patientAddress) throw new Error('Please enter patient address');
+
+                const profile = await contract.getPatientProfile(patientAddress);
+
+                const resultDiv = document.getElementById('patientResults');
+                resultDiv.innerHTML = `
+                    <div class="info-card">
+                        <div class="info-title">Patient Profile</div>
+                        <div class="detail-item">
+                            <div class="detail-label">Registered</div>
+                            <div class="detail-value">${profile[0] ? 'Yes' : 'No'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Total Sessions</div>
+                            <div class="detail-value">${profile[1].toString()}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Registration Time</div>
+                            <div class="detail-value">${new Date(profile[2] * 1000).toLocaleString()}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Assigned Therapist</div>
+                            <div class="detail-value">${profile[3]}</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                showError('Error getting patient profile: ' + error.message);
+            }
+        }
+
+        async function getPatientRecords() {
+            try {
+                if (!contract) {
+                    initializeContract();
+                    if (!contract) throw new Error('Contract not initialized');
+                }
+
+                const patientAddress = document.getElementById('patientAddressView').value;
+                if (!patientAddress) throw new Error('Please enter patient address');
+
+                const recordIds = await contract.getPatientRecords(patientAddress);
+
+                const resultDiv = document.getElementById('patientResults');
+                if (recordIds.length === 0) {
+                    resultDiv.innerHTML = '<div class="info-card">No records found for this patient.</div>';
+                    return;
+                }
+
+                let recordsHtml = '<div class="info-card"><div class="info-title">Patient Records</div>';
+                recordsHtml += '<div class="records-grid">';
+
+                for (let i = 0; i < recordIds.length; i++) {
+                    recordsHtml += `<div class="detail-item">Record ID: ${recordIds[i].toString()}</div>`;
+                }
+
+                recordsHtml += '</div></div>';
+                resultDiv.innerHTML = recordsHtml;
+
+            } catch (error) {
+                showError('Error getting patient records: ' + error.message);
+            }
+        }
+
+        async function createRecord() {
+            try {
+                if (!contract) {
+                    initializeContract();
+                    if (!contract) throw new Error('Contract not initialized');
+                }
+
+                const patientAddress = document.getElementById('recordPatientAddress').value;
+                const exerciseIntensity = parseInt(document.getElementById('exerciseIntensity').value);
+                const painLevel = parseInt(document.getElementById('painLevel').value);
+                const mobilityScore = parseInt(document.getElementById('mobilityScore').value);
+                const exerciseType = parseInt(document.getElementById('exerciseType').value);
+                const sessionDuration = parseInt(document.getElementById('sessionDuration').value);
+
+                if (!patientAddress || isNaN(exerciseIntensity) || isNaN(painLevel) ||
+                    isNaN(mobilityScore) || isNaN(exerciseType) || isNaN(sessionDuration)) {
+                    throw new Error('Please fill in all fields with valid values');
+                }
+
+                const tx = await contract.createRecord(
+                    patientAddress,
+                    exerciseIntensity,
+                    painLevel,
+                    mobilityScore,
+                    exerciseType,
+                    sessionDuration
+                );
+
+                showSuccess('Transaction sent. Waiting for confirmation...');
+
+                const receipt = await tx.wait();
+                showSuccess('Record created successfully!');
+
+                // Clear form
+                document.getElementById('recordPatientAddress').value = '';
+                document.getElementById('exerciseIntensity').value = '';
+                document.getElementById('painLevel').value = '';
+                document.getElementById('mobilityScore').value = '';
+                document.getElementById('sessionDuration').value = '';
+
+                loadSystemStats();
+
+            } catch (error) {
+                showError('Error creating record: ' + error.message);
+            }
+        }
+
+        async function getRecordMetadata() {
+            try {
+                if (!contract) {
+                    initializeContract();
+                    if (!contract) throw new Error('Contract not initialized');
+                }
+
+                const recordId = parseInt(document.getElementById('recordIdView').value);
+                if (isNaN(recordId)) throw new Error('Please enter valid record ID');
+
+                const metadata = await contract.getRecordMetadata(recordId);
+
+                const resultDiv = document.getElementById('recordResults');
+                resultDiv.innerHTML = `
+                    <div class="info-card">
+                        <div class="info-title">Record #${recordId} Metadata</div>
+                        <div class="detail-item">
+                            <div class="detail-label">Status</div>
+                            <div class="detail-value">${metadata[0] ? 'Active' : 'Inactive'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Timestamp</div>
+                            <div class="detail-value">${new Date(metadata[1] * 1000).toLocaleString()}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Patient</div>
+                            <div class="detail-value">${metadata[2]}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Therapist</div>
+                            <div class="detail-value">${metadata[3]}</div>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                showError('Error getting record metadata: ' + error.message);
+            }
+        }
+
+        async function deactivateRecord() {
+            try {
+                if (!contract) {
+                    initializeContract();
+                    if (!contract) throw new Error('Contract not initialized');
+                }
+
+                const recordId = parseInt(document.getElementById('recordIdView').value);
+                if (isNaN(recordId)) throw new Error('Please enter valid record ID');
+
+                const tx = await contract.deactivateRecord(recordId);
+                showSuccess('Transaction sent. Waiting for confirmation...');
+
+                await tx.wait();
+                showSuccess('Record deactivated successfully!');
+
+            } catch (error) {
+                showError('Error deactivating record: ' + error.message);
+            }
+        }
+
+        function switchTab(tabName) {
+            // Hide all tab contents
+            const tabContents = document.querySelectorAll('.tab-content');
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function showError(message) {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = message;
+
+            // Insert at the top of the container
+            const container = document.querySelector('.container');
+            container.insertBefore(errorDiv, container.firstChild);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                if (errorDiv.parentNode) {
+                    errorDiv.parentNode.removeChild(errorDiv);
+                }
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success';
+            successDiv.textContent = message;
+
+            // Insert at the top of the container
+            const container = document.querySelector('.container');
+            container.insertBefore(successDiv, container.firstChild);
+
+            // Remove after 5 seconds
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.parentNode.removeChild(successDiv);
+                }
+            }, 5000);
+        }
+
+        // Event listeners
+        document.getElementById('connectButton').addEventListener('click', connectWallet);
+
+        // Contract address change handler
+        document.getElementById('contractAddress').addEventListener('change', function() {
+            if (signer) {
+                initializeContract();
+                loadSystemStats();
+            }
+        });
+
+        // Auto-connect if already connected
+        window.addEventListener('load', async () => {
+            if (typeof window.ethereum !== 'undefined') {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+                    if (accounts.length > 0) {
+                        await connectWallet();
+                    }
+                } catch (error) {
+                    console.log('Not connected');
+                }
+            }
+        });
+
+        // Handle account changes
+        if (typeof window.ethereum !== 'undefined') {
+            window.ethereum.on('accountsChanged', function (accounts) {
+                if (accounts.length === 0) {
+                    // User disconnected
+                    document.getElementById('connectionStatus').textContent = 'Not Connected';
+                    document.getElementById('connectionStatus').className = 'connection-status status-disconnected';
+                    document.getElementById('accountDisplay').textContent = 'Not connected';
+                    document.getElementById('connectButton').textContent = 'Connect Wallet';
+                    document.getElementById('connectButton').disabled = false;
+                } else {
+                    // User switched accounts
+                    connectWallet();
+                }
+            });
+
+            window.ethereum.on('chainChanged', function (chainId) {
+                // Reload the page when chain changes
+                window.location.reload();
+            });
+        }
+    </script>
+</body>
+</html>

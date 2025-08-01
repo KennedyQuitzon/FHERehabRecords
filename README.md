@@ -1,27 +1,165 @@
-# 🏥 Private Rehabilitation Records
+# 🏥 FHE Rehabilitation Records
 
-[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://private-rehab-records.vercel.app/)
+[![Live Demo](https://img.shields.io/badge/demo-live-success)](https://fhe-rehab-records.vercel.app/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Tests](https://img.shields.io/badge/tests-93%2B%20passing-brightgreen)]()
 [![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)]()
 [![Solidity](https://img.shields.io/badge/solidity-0.8.24-orange)](https://soliditylang.org/)
 [![Hardhat](https://img.shields.io/badge/hardhat-2.19.0-yellow)](https://hardhat.org/)
 
-> **Privacy-preserving healthcare management system** using **Zama FHEVM** for confidential rehabilitation and sports medicine data tracking on Ethereum blockchain.
+> **Privacy-preserving sports medicine and rehabilitation data management** using **Zama FHEVM** for confidential health tracking on Ethereum blockchain.
 
-🌐 **[Live Demo](https://private-rehab-records.vercel.app/)** | 📺 **[Video Demo](PrivateRehabRecords.mp4)** | 📖 **[Documentation](#documentation)**
+🌐 **[Live Demo](https://fhe-rehab-records.vercel.app/)** | 📺 **[Video Demo - Download Required](demo.mp4)** | 📖 **[Documentation](#documentation)** | 🔗 **[GitHub Repository](https://github.com/KennedyQuitzon/FHERehabRecords)**
 
 ---
 
 ## 🎯 Overview
 
-A decentralized healthcare application leveraging **Fully Homomorphic Encryption (FHE)** to manage confidential rehabilitation records. Built for the **Zama FHE ecosystem**, enabling healthcare providers to track patient progress while ensuring **complete data privacy** on the blockchain.
+A decentralized healthcare application leveraging **Fully Homomorphic Encryption (FHE)** to manage confidential rehabilitation and sports medicine records. Built for the **Zama FHE ecosystem**, enabling healthcare providers to track patient recovery progress while ensuring **complete data privacy** on the blockchain.
 
 **Key Innovation**: Medical data remains encrypted during computation, allowing statistical analysis and progress tracking without ever exposing sensitive patient information.
 
 ```
 🔐 Encrypted at Rest + Encrypted in Transit + Encrypted During Computation = Complete Privacy
 ```
+
+---
+
+## 💡 Core Concepts
+
+### What is FHE (Fully Homomorphic Encryption)?
+
+Fully Homomorphic Encryption enables computations to be performed directly on encrypted data without decryption. This revolutionary technology allows:
+
+- **Confidential Data Processing** - Perform operations on encrypted values
+- **Privacy-Preserving Analytics** - Calculate statistics without seeing raw data
+- **Secure Multi-Party Computation** - Multiple parties can work together without revealing their inputs
+- **Zero-Knowledge Operations** - Verify computations without accessing private information
+
+### FHE Contract for Confidential Sports Medicine Data
+
+This project implements an FHE-powered smart contract specifically designed for **confidential rehabilitation and sports medicine records**:
+
+#### Privacy Model
+
+```
+Traditional Healthcare Records:
+❌ Centralized storage (single point of failure)
+❌ Plaintext data vulnerable to breaches
+❌ Limited patient control over access
+❌ No computation on encrypted data
+
+FHE Rehabilitation Records:
+✅ Decentralized blockchain storage
+✅ Always-encrypted medical data
+✅ Patient-controlled access permissions
+✅ Encrypted operations (comparisons, aggregations)
+```
+
+#### Confidential Sports Medicine Data
+
+All sensitive rehabilitation and sports medicine metrics are encrypted using FHE:
+
+**What's Encrypted (Private Health Information)**:
+
+1. **Exercise Intensity** (`euint32`)
+   - Workout level measurements (0-100 scale)
+   - Training load indicators
+   - Performance metrics
+
+2. **Pain Levels** (`euint32`)
+   - Patient-reported pain scores (0-10 scale)
+   - Discomfort assessments
+   - Recovery progress indicators
+
+3. **Mobility Scores** (`euint32`)
+   - Range of motion measurements
+   - Functional movement assessments
+   - Rehabilitation progress metrics
+
+4. **Exercise Type** (`euint8`)
+   - Therapy categories (strength, cardio, flexibility, balance)
+   - Treatment modalities
+   - Workout classifications
+
+5. **Session Duration** (`euint32`)
+   - Treatment session length
+   - Training time
+   - Therapy duration tracking
+
+#### FHE Operations in Practice
+
+```solidity
+// Example: Creating an encrypted rehabilitation record
+function createRecord(
+    address patientAddress,
+    uint32 _exerciseIntensity,  // Plaintext input
+    uint32 _painLevel,
+    uint32 _mobilityScore,
+    uint8 _exerciseType,
+    uint32 _sessionDuration
+) external {
+    // 1. Encrypt sensitive data using FHE
+    euint32 encryptedIntensity = FHE.asEuint32(_exerciseIntensity);
+    euint32 encryptedPainLevel = FHE.asEuint32(_painLevel);
+    euint32 encryptedMobilityScore = FHE.asEuint32(_mobilityScore);
+
+    // 2. Store encrypted data on-chain
+    records[recordId] = RehabRecord({
+        exerciseIntensity: encryptedIntensity,
+        painLevel: encryptedPainLevel,
+        mobilityScore: encryptedMobilityScore,
+        // ... other fields
+    });
+
+    // 3. Grant access permissions to authorized parties
+    FHE.allow(encryptedIntensity, patientAddress);    // Patient access
+    FHE.allow(encryptedIntensity, therapistAddress);  // Therapist access
+    FHE.allowThis(encryptedIntensity);                // Contract access
+
+    // Data is now encrypted and stored on-chain!
+}
+```
+
+#### Privacy Guarantees
+
+**Who Can Access What?**
+
+| Data Type | Patient | Therapist | Contract | Public |
+|-----------|---------|-----------|----------|--------|
+| Exercise Intensity | ✅ Decrypt | ✅ Decrypt | ✅ Compute | ❌ Hidden |
+| Pain Levels | ✅ Decrypt | ✅ Decrypt | ✅ Compute | ❌ Hidden |
+| Mobility Scores | ✅ Decrypt | ✅ Decrypt | ✅ Compute | ❌ Hidden |
+| Record Timestamp | ✅ View | ✅ View | ✅ View | ✅ View |
+| Participant Addresses | ✅ View | ✅ View | ✅ View | ✅ View |
+
+**Key Privacy Features**:
+
+- ✅ **End-to-End Encryption** - Data encrypted from entry to storage
+- ✅ **Selective Disclosure** - Patients control who can decrypt their data
+- ✅ **Homomorphic Operations** - Computations on encrypted data (future: averages, trends)
+- ✅ **On-chain Privacy** - No off-chain trusted parties needed
+- ✅ **Audit Trail** - Immutable access logs without exposing sensitive data
+
+#### Use Case: Sports Medicine Clinic
+
+**Scenario**: A sports medicine clinic uses FHE contracts to manage athlete rehabilitation:
+
+1. **Therapist** records encrypted performance metrics after each session
+2. **System** performs encrypted analysis to track recovery trends
+3. **Patient** views their own progress with decryption key
+4. **Consulting Specialist** can be granted temporary access if needed
+5. **Privacy Maintained** - Raw medical data never exposed on blockchain
+
+#### Technical Advantages
+
+**Why FHE for Healthcare?**
+
+1. **HIPAA/GDPR Alignment** - Encrypted data reduces compliance risk
+2. **Data Sovereignty** - Patients retain control over their medical information
+3. **Interoperability** - Secure sharing between healthcare providers
+4. **Tamper-Proof** - Blockchain immutability ensures data integrity
+5. **Future-Proof** - Quantum-resistant encryption methods
 
 ---
 
@@ -61,7 +199,7 @@ A decentralized healthcare application leveraging **Fully Homomorphic Encryption
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│              Smart Contract (Solidity 0.8.24)                │
+│         FHE Smart Contract (Solidity 0.8.24)                 │
 ├─────────────────────────────────────────────────────────────┤
 │  ├── Encrypted Storage (euint32, euint8, ebool)             │
 │  ├── FHE Operations (FHE.asEuint32, FHE.allow)              │
@@ -81,71 +219,56 @@ A decentralized healthcare application leveraging **Fully Homomorphic Encryption
 ### Data Flow
 
 ```
-Patient Data Input
+Patient Sports Medicine Data Input
     ↓
 FHE Encryption (euint32)
     ↓
-Smart Contract Storage
+Smart Contract Storage (Always Encrypted)
     ↓
-Homomorphic Operations
+Homomorphic Operations (No Decryption)
     ↓
-Encrypted Results
+Encrypted Results & Analytics
     ↓
 Authorized Decryption (FHE.allow)
     ↓
-Therapist Dashboard
+Therapist/Patient Dashboard
 ```
 
 ---
 
-## 🔐 Privacy Model
+## 🔐 FHE Privacy Model
 
-### What's Private (Encrypted with FHE)
-
-- ✅ **Exercise Intensity** - Workout levels (0-100 scale) stored as `euint32`
-- ✅ **Pain Levels** - Patient pain assessment (0-10 scale) as `euint32`
-- ✅ **Mobility Scores** - Range of motion measurements as `euint32`
-- ✅ **Exercise Types** - Therapy categories as `euint8`
-- ✅ **Session Duration** - Treatment time as `euint32`
+### Encrypted Types (Confidential Data)
 
 ```solidity
-// Example: Encrypted data storage
 struct RehabRecord {
-    euint32 exerciseIntensity;  // 0-100, encrypted
-    euint32 painLevel;           // 0-10, encrypted
-    euint32 mobilityScore;       // 0-100, encrypted
-    euint8 exerciseType;         // Category, encrypted
-    euint32 sessionDuration;     // Minutes, encrypted
-    bool isActive;
-    uint256 timestamp;
-    address patient;
-    address therapist;
+    euint32 exerciseIntensity;  // 0-100 scale, FHE encrypted
+    euint32 painLevel;           // 0-10 scale, FHE encrypted
+    euint32 mobilityScore;       // 0-100 scale, FHE encrypted
+    euint8 exerciseType;         // Category, FHE encrypted
+    euint32 sessionDuration;     // Minutes, FHE encrypted
+    bool isActive;               // Public status
+    uint256 timestamp;           // Public metadata
+    address patient;             // Public identifier
+    address therapist;           // Public identifier
 }
 ```
 
-### What's Public (On-Chain Metadata)
-
-- 📅 **Record Timestamp** - When record was created
-- 👤 **Patient Address** - Ethereum address (pseudonymous)
-- 👨‍⚕️ **Therapist Address** - Healthcare provider address
-- ✅ **Record Status** - Active or deactivated
-- 🔢 **Record Counter** - Total number of records
-
-### Decryption Permissions
-
-Access control managed by FHE permission system:
+### FHE Permission System
 
 ```solidity
-// Grant access to encrypted data
-FHE.allow(encryptedIntensity, patientAddress);
-FHE.allow(encryptedIntensity, therapistAddress);
-FHE.allowThis(encryptedIntensity);
+// Grant decryption permissions
+FHE.allow(encryptedIntensity, patientAddress);   // Patient can decrypt
+FHE.allow(encryptedIntensity, therapistAddress); // Therapist can decrypt
+FHE.allowThis(encryptedIntensity);               // Contract can compute
 ```
 
+**Access Control Matrix**:
+
 - **Patients**: Can decrypt their own medical records
-- **Therapists**: Can decrypt records for their assigned patients
-- **Contract**: Internal operations on encrypted data
-- **Others**: No access - privacy preserved
+- **Assigned Therapists**: Can decrypt records for their patients
+- **Smart Contract**: Can perform encrypted computations
+- **Other Users**: No access - complete privacy
 
 ---
 
@@ -167,8 +290,8 @@ Git for cloning
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/KennedyQuitzon/PrivateRehabRecords.git
-cd PrivateRehabRecords
+git clone https://github.com/KennedyQuitzon/FHERehabRecords.git
+cd FHERehabRecords
 
 # 2. Install dependencies
 npm install
@@ -183,10 +306,7 @@ npm run compile
 # 5. Run tests
 npm test
 
-# 6. Start local node (optional)
-npm run node
-
-# 7. Deploy to Sepolia
+# 6. Deploy to Sepolia
 npm run deploy
 ```
 
@@ -460,13 +580,19 @@ updateRecord:           ~80,000 gas
 ## 🌐 Live Demo
 
 ### Application
-🚀 **[https://private-rehab-records.vercel.app/](https://private-rehab-records.vercel.app/)**
+🚀 **[https://fhe-rehab-records.vercel.app/](https://fhe-rehab-records.vercel.app/)**
+
+### Video Demonstration
+📺 **[Download demo.mp4 to view](demo.mp4)** - The video file needs to be downloaded to your local machine for viewing. Direct links cannot be opened in browser.
 
 ### Deployed Contract
 📜 **Sepolia Testnet**
 - **Address**: `0x9C434EDeBB2aA48400f96167977B88B070bb74f3`
 - **Explorer**: [View on Etherscan](https://sepolia.etherscan.io/address/0x9C434EDeBB2aA48400f96167977B88B070bb74f3)
 - **Verified**: ✅ Source code verified
+
+### GitHub Repository
+🔗 **[https://github.com/KennedyQuitzon/FHERehabRecords](https://github.com/KennedyQuitzon/FHERehabRecords)**
 
 ### Getting Testnet ETH
 💧 **Sepolia Faucets**:
@@ -643,13 +769,13 @@ git push origin feature/amazing-feature
 
 ## 🎥 Video Demo
 
-📺 **[Watch Demo Video](PrivateRehabRecords.mp4)**
+📺 **Download Required**: The [demo.mp4](demo.mp4) file must be downloaded to your local machine to view. Direct browser links are not supported for local video files.
 
-Demo showcases:
-- 🔐 Privacy-preserving data entry
-- 👨‍⚕️ Therapist workflow
-- 👤 Patient dashboard
-- 📊 Encrypted record management
+**Demo showcases**:
+- 🔐 Privacy-preserving data entry with FHE
+- 👨‍⚕️ Therapist workflow for encrypted records
+- 👤 Patient dashboard and access control
+- 📊 Encrypted record management system
 - 🔍 Access control demonstration
 
 ---
@@ -661,7 +787,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 ```
 MIT License
 
-Copyright (c) 2024 Private Rehabilitation Records
+Copyright (c) 2024 FHE Rehabilitation Records
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files...
@@ -687,9 +813,9 @@ of this software and associated documentation files...
 ## 📞 Support
 
 ### Get Help
-- 📧 **Issues**: [GitHub Issues](https://github.com/KennedyQuitzon/PrivateRehabRecords/issues)
+- 📧 **Issues**: [GitHub Issues](https://github.com/KennedyQuitzon/FHERehabRecords/issues)
 - 📖 **Docs**: [Documentation](#documentation)
-- 💬 **Discussions**: [GitHub Discussions](https://github.com/KennedyQuitzon/PrivateRehabRecords/discussions)
+- 💬 **Discussions**: [GitHub Discussions](https://github.com/KennedyQuitzon/FHERehabRecords/discussions)
 
 ### Resources
 - 🔗 [Zama Discord](https://discord.com/invite/zama)
@@ -710,6 +836,6 @@ If you find this project useful, please ⭐ star the repository!
 
 **Powered by Zama FHEVM** | **MIT Licensed** | **Sepolia Testnet**
 
-[Live Demo](https://private-rehab-records.vercel.app/) • [Documentation](#documentation) • [GitHub](https://github.com/KennedyQuitzon/PrivateRehabRecords)
+[Live Demo](https://fhe-rehab-records.vercel.app/) • [Documentation](#documentation) • [GitHub](https://github.com/KennedyQuitzon/FHERehabRecords)
 
 </div>

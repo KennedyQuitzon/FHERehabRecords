@@ -9,7 +9,7 @@
 
 > **Privacy-preserving sports medicine and rehabilitation data management** using **Zama FHEVM** for confidential health tracking on Ethereum blockchain.
 
-🌐 **[Live Demo](https://fhe-rehab-records.vercel.app/)** | 📺 **[Video Demo - Download Required](demo.mp4)** | 📖 **[Documentation](#documentation)** | 🔗 **[GitHub Repository](https://github.com/KennedyQuitzon/FHERehabRecords)**
+🌐 **[Live Demo](https://fhe-rehab-records.vercel.app/)** | 📺 **[Video Demo - Download Required]** | 📖 **[Documentation](#documentation)** | 🔗 **[GitHub Repository](https://github.com/KennedyQuitzon/FHERehabRecords)**
 
 ---
 
@@ -583,7 +583,7 @@ updateRecord:           ~80,000 gas
 🚀 **[https://fhe-rehab-records.vercel.app/](https://fhe-rehab-records.vercel.app/)**
 
 ### Video Demonstration
-📺 **[Download demo.mp4 to view](demo.mp4)** - The video file needs to be downloaded to your local machine for viewing. Direct links cannot be opened in browser.
+📺 **[Download demo.mp4 to view]** - The video file needs to be downloaded to your local machine for viewing. Direct links cannot be opened in browser.
 
 ### Deployed Contract
 📜 **Sepolia Testnet**
@@ -769,7 +769,7 @@ git push origin feature/amazing-feature
 
 ## 🎥 Video Demo
 
-📺 **Download Required**: The [demo.mp4](demo.mp4) file must be downloaded to your local machine to view. Direct browser links are not supported for local video files.
+📺 **Download Required**: The [demo.mp4] file must be downloaded to your local machine to view. Direct browser links are not supported for local video files.
 
 **Demo showcases**:
 - 🔐 Privacy-preserving data entry with FHE

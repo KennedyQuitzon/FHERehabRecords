@@ -9,7 +9,7 @@
 
 > **Privacy-preserving sports medicine and rehabilitation data management** using **Zama FHEVM** for confidential health tracking on Ethereum blockchain.
 
-🌐 **[Live Demo](https://fhe-rehab-records.vercel.app/)** | 📺 **[Video Demo - Download Required]** | 📖 **[Documentation](#documentation)** | 🔗 **[GitHub Repository](https://github.com/KennedyQuitzon/FHERehabRecords)**
+🌐 **[Live Demo](https://fhe-rehab-records.vercel.app/)** | 📺 **[Video Demo demo.mp4 - Download Required]** | 📖 **[Documentation](#documentation)** | 🔗 **[GitHub Repository](https://github.com/KennedyQuitzon/FHERehabRecords)**
 
 ---
 

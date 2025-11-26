@@ -15,13 +15,42 @@
 
 ## 🎯 Overview
 
-A decentralized healthcare application leveraging **Fully Homomorphic Encryption (FHE)** to manage confidential rehabilitation and sports medicine records. Built for the **Zama FHE ecosystem**, enabling healthcare providers to track patient recovery progress while ensuring **complete data privacy** on the blockchain.
+A decentralized healthcare application leveraging **Fully Homomorphic Encryption (FHE)** with an innovative **Gateway callback architecture** to manage confidential rehabilitation and sports medicine records. Built for the **Zama FHE ecosystem**, enabling healthcare providers to track patient recovery progress while ensuring **complete data privacy** on the blockchain.
 
-**Key Innovation**: Medical data remains encrypted during computation, allowing statistical analysis and progress tracking without ever exposing sensitive patient information.
+**Key Innovation**: Medical data remains encrypted during computation, with **asynchronous processing**, **refund mechanisms**, and **timeout protection** to ensure reliable operations without exposing sensitive patient information.
 
 ```
-🔐 Encrypted at Rest + Encrypted in Transit + Encrypted During Computation = Complete Privacy
+🔐 Encrypted at Rest + Encrypted in Transit + Encrypted During Computation + Gateway Callbacks = Complete Privacy + Reliability
 ```
+
+## 🚀 Enhanced Features
+
+### **Gateway Callback Architecture**
+- **Asynchronous Processing**: All sensitive operations use Gateway callbacks for reliable processing
+- **Timeout Protection**: Prevents permanent locking of operations with configurable timeouts
+- **Refund Mechanism**: Automatic refunds for failed operations and decryption timeouts
+- **Retry Logic**: Built-in retry mechanism with configurable attempt limits
+- **Status Tracking**: Real-time status monitoring of all callback requests
+
+### **Advanced Security & Privacy**
+- **Rate Limiting**: Prevents abuse and spam operations
+- **Gas Limit Protection**: Safeguards against gas limit exhaustion
+- **Reentrancy Guards**: Comprehensive reentrancy protection
+- **Input Validation**: Multi-layer validation for all inputs
+- **Privacy Preservation**: Random delays and timing attack protection
+- **Audit Trail**: Complete audit logging for all operations
+
+### **Gas Optimization**
+- **Batch Operations**: Support for batch processing of multiple records
+- **HCU Management**: Optimized use of Homomorphic Computation Units
+- **Efficient Callbacks**: Minimized gas usage through optimized callback patterns
+- **Bulk Deactivation**: Gas-efficient batch deactivation of records
+
+### **Developer Experience**
+- **Enhanced API**: Comprehensive API with status tracking and health monitoring
+- **Error Handling**: Detailed error messages and recovery mechanisms
+- **Emergency Functions**: Owner controls for contract management
+- **Contract Health**: Real-time monitoring and diagnostic functions
 
 ### 🎨 Two Frontend Implementations
 
@@ -221,7 +250,7 @@ function createRecord(
 
 ## 🏗️ Architecture
 
-### Classic Frontend Architecture
+### Enhanced Gateway Callback Architecture
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -229,16 +258,30 @@ function createRecord(
 ├─────────────────────────────────────────────────────────────┤
 │  ├── MetaMask Integration (Wallet Connection)               │
 │  ├── Ethers.js (Smart Contract Interaction)                 │
-│  └── Real-time Encrypted Data Display                       │
+│  ├── Encrypted Data Preparation                             │
+│  └── Status Monitoring & Refund Handling                    │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
-│         FHE Smart Contract (Solidity 0.8.24)                 │
+│    Enhanced FHE Smart Contract (Gateway Callback Pattern)    │
 ├─────────────────────────────────────────────────────────────┤
-│  ├── Encrypted Storage (euint32, euint8, ebool)             │
-│  ├── FHE Operations (FHE.asEuint32, FHE.allow)              │
-│  ├── Access Control (Modifiers + Role-based)                │
-│  └── Event Logging (Audit Trail)                            │
+│  ├── Request Validation & Security Layer                    │
+│  ├── Callback Request Management                            │
+│  ├── Timeout & Refund Mechanism                             │
+│  ├── Encrypted Storage (euint32, euint8, ebool)            │
+│  ├── FHE Operations & Gateway Integration                  │
+│  ├── Access Control & Rate Limiting                        │
+│  ├── Audit Trail & Event Logging                           │
+│  └── Batch Operations & Gas Optimization                    │
+└─────────────────────────────────────────────────────────────┘
+                              ↓
+┌─────────────────────────────────────────────────────────────┐
+│                   Zama Gateway Oracle                       │
+├─────────────────────────────────────────────────────────────┤
+│  ├── Asynchronous Decryption Processing                     │
+│  ├── Request Queuing & Management                          │
+│  ├── Timeout Handling                                      │
+│  └── Callback Execution                                    │
 └─────────────────────────────────────────────────────────────┘
                               ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -246,9 +289,40 @@ function createRecord(
 ├─────────────────────────────────────────────────────────────┤
 │  ├── Encrypted Computation Layer                            │
 │  ├── Homomorphic Operations                                 │
+│  ├── Callback Processing                                    │
 │  └── On-chain Privacy Preservation                          │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+### Operation Flow: Gateway Callback Pattern
+
+```
+1. User Submits Encrypted Request
+   ↓
+2. Contract Validates & Creates Callback Request
+   ↓
+3. Gateway Oracle Processes Decryption
+   ↓
+4. Contract Receives Callback & Completes Operation
+   ↓
+5. Refund Processing (if timeout/failure)
+```
+
+### Privacy & Security Enhancements
+
+**Advanced Privacy Protection**:
+- 🛡️ **Timing Attack Protection**: Random delays for sensitive operations
+- 🔐 **Division Problem Solution**: Multiplicative randomization for privacy
+- 🎯 **Price Leakage Prevention**: Fuzzed operation timing
+- ⏱️ **Asynchronous Processing**: No blocking operations
+- 🔒 **Access Revocation**: Dynamic access control management
+
+**Comprehensive Security Framework**:
+- 🚫 **DoS Protection**: Rate limiting and gas limit controls
+- 🔁 **Reentrancy Guards**: Multi-layer reentrancy protection
+- ✅ **Input Validation**: Comprehensive parameter validation
+- 🔍 **Audit Logging**: Complete operation audit trail
+- 🚨 **Security Alerts**: Real-time security event notifications
 
 ### React + Vite Application Architecture
 
@@ -507,6 +581,145 @@ OWNER_ADDRESS=0x...
 REPORT_GAS=true
 ```
 
+## 📚 API Documentation
+
+### Core Functions
+
+#### **User Management**
+```solidity
+// Authorize therapist
+function authorizeTherapist(address therapist, string calldata license) external onlyOwner;
+
+// Register patient
+function registerPatient(address patient, address therapist) external onlyOwner;
+```
+
+#### **Record Operations (Gateway Callback Pattern)**
+```solidity
+// Create record with async processing
+function createRecord(
+    address patient,
+    externalEuint32 encryptedIntensity,
+    externalEuint32 encryptedPainLevel,
+    externalEuint32 encryptedMobilityScore,
+    externalEuint8 encryptedExerciseType,
+    externalEuint32 encryptedDuration,
+    bytes calldata intensityProof,
+    bytes calldata painProof,
+    bytes calldata mobilityProof,
+    bytes calldata typeProof,
+    bytes calldata durationProof
+) external payable;
+
+// Update record with async processing
+function updateRecord(uint256 recordId, ...) external payable;
+
+// Gateway callback handlers
+function createRecordCallback(uint256 requestId, bytes memory decrypted, bytes memory proof) external;
+function updateRecordCallback(uint256 requestId, bytes memory decrypted, bytes memory proof) external;
+```
+
+#### **Refund & Timeout Management**
+```solidity
+// Trigger refund for failed operation
+function triggerRefund(uint256 requestId, string calldata reason) external;
+
+// Process refund after waiting period
+function processRefund(uint256 requestId) external;
+
+// Handle timeout operations
+function handleTimeout(uint256 requestId) external;
+
+// Batch timeout cleanup
+function forceTimeoutExpiredRequests() external onlyOwner;
+```
+
+#### **Security & Access Control**
+```solidity
+// Grant temporary access
+function grantRecordAccess(uint256 recordId, address grantTo) external;
+
+// Revoke access
+function revokeRecordAccess(uint256 recordId, address revokeFrom) external;
+
+// Deactivate record
+function deactivateRecord(uint256 recordId) external;
+
+// Batch operations
+function batchDeactivateRecords(uint256[] calldata recordIds) external onlyOwner;
+```
+
+#### **Monitoring & Health**
+```solidity
+// Get contract health status
+function getContractHealth() external view returns (
+    uint256 totalBalance,
+    uint256 pendingRefunds,
+    uint256 activeRequests,
+    uint256 completedRecords
+);
+
+// Get callback request status
+function getCallbackRequest(uint256 requestId) external view returns (...);
+```
+
+### Events
+
+#### **Gateway Callback Events**
+```solidity
+event CallbackRequested(uint256 indexed requestId, address indexed requester, uint256 requestType);
+event CallbackCompleted(uint256 indexed requestId, bool success);
+event ProcessingTimeout(uint256 indexed requestId, uint256 indexed recordId);
+event DecryptionRequested(uint256 indexed recordId, uint256 indexed requestId);
+event DecryptionCompleted(uint256 indexed requestId, uint256 indexed recordId);
+```
+
+#### **Refund Mechanism Events**
+```solidity
+event RefundTriggered(uint256 indexed requestId, address indexed user, uint256 amount, string reason);
+event RefundProcessed(uint256 indexed requestId, address indexed user, uint256 amount);
+event RefundFailed(uint256 indexed requestId, address indexed user, uint256 amount, string reason);
+```
+
+#### **Security & Audit Events**
+```solidity
+event SecurityAlert(string alertType, address indexed user, uint256 timestamp);
+event OperationAttempted(string operation, address indexed user, bool success);
+event AccessRevoked(uint256 indexed recordId, address indexed revokedFrom);
+```
+
+### Constants & Configuration
+
+```solidity
+uint256 public constant OPERATION_TIMEOUT = 24 hours;
+uint256 public constant REFUND_WAITING_PERIOD = 1 hours;
+uint256 public constant MAX_RETRY_ATTEMPTS = 3;
+uint256 public constant MAX_GAS_LIMIT = 500000;
+uint256 public constant MIN_DELAY_BETWEEN_OPERATIONS = 1 minutes;
+uint256 public constant REFUND_THRESHOLD = 0.001 ether;
+uint256 public constant PLATFORM_FEE = 0.0001 ether;
+```
+
+### Security Modifiers
+
+- `rateLimiting()` - Prevents rapid successive operations
+- `gasLimitCheck()` - Validates gas usage limits
+- `validAddress(address)` - Validates address inputs
+- `nonReentrant()` - Prevents reentrancy attacks
+- `timeoutProtection(uint256)` - Prevents operations on timed-out records
+- `operationExists(uint256)` - Validates callback request existence
+
+### Error Handling
+
+The contract provides comprehensive error messages for:
+- Invalid input parameters
+- Rate limiting violations
+- Timeout exceeded operations
+- Insufficient permissions
+- Reentrancy attempts
+- Gas limit violations
+- Address validation failures
+
 ---
 
 ## 🔧 Technical Implementation
@@ -727,12 +940,15 @@ updateRecord:           ~80,000 gas
 
 ## 🛠️ Tech Stack
 
-### Smart Contracts
+### Smart Contracts (Enhanced with Gateway Callback Pattern)
 - **Framework**: [Hardhat](https://hardhat.org/) 2.19.0
 - **Language**: [Solidity](https://soliditylang.org/) 0.8.24
-- **FHE Library**: [@fhevm/solidity](https://docs.zama.ai/fhevm)
+- **FHE Library**: [@fhevm/solidity](https://docs.zama.ai/fhevm) with Gateway callbacks
 - **Network**: Ethereum Sepolia Testnet
 - **Testing**: Mocha + Chai + Hardhat Network
+- **Security**: Comprehensive security modifiers and audit logging
+- **Privacy**: Advanced privacy protection with timing attack prevention
+- **Gas Optimization**: Batch operations and HCU management
 
 ### Frontend (Multiple Implementations)
 
@@ -1000,19 +1216,30 @@ git push origin feature/amazing-feature
 - [x] Documentation completion
 - [x] Gas optimization
 
-### 🔄 Phase 3: Enhanced Features (In Progress)
-- [ ] Batch operations for multiple records
-- [ ] Advanced FHE operations (comparisons, aggregations)
-- [ ] Multi-therapist collaboration
-- [ ] Patient consent management
-- [ ] Export/import functionality
+### ✅ Phase 3: Enhanced Features (Completed)
+- [x] **Gateway Callback Architecture**: Asynchronous processing with reliable callbacks
+- [x] **Refund Mechanism**: Automatic refunds for failed operations and timeouts
+- [x] **Timeout Protection**: Prevents permanent locking with configurable timeouts
+- [x] **Advanced Security**: Rate limiting, reentrancy guards, input validation
+- [x] **Privacy Enhancements**: Timing attack prevention and randomization
+- [x] **Gas Optimization**: Batch operations and HCU management
+- [x] **Audit Trail**: Complete operation logging and security alerts
+- [x] **Health Monitoring**: Real-time contract status and diagnostics
 
-### 🔮 Phase 4: Advanced Privacy (Planned)
-- [ ] Zero-knowledge proofs for identity
-- [ ] Decentralized storage (IPFS) for large files
+### 🔄 Phase 4: Advanced Features (In Progress)
+- [ ] Advanced FHE operations (comparisons, aggregations)
+- [ ] Multi-therapist collaboration workflows
+- [ ] Patient consent management system
+- [ ] Cross-record analytics and trends
+- [ ] Mobile-responsive interface improvements
+
+### 🔮 Phase 5: Ecosystem Integration (Planned)
+- [ ] Zero-knowledge proofs for identity verification
+- [ ] Decentralized storage (IPFS) integration for large files
 - [ ] Cross-chain bridge for wider adoption
 - [ ] Mobile application (React Native)
-- [ ] Mainnet deployment
+- [ ] Mainnet deployment preparation
+- [ ] Healthcare provider certification system
 
 ---
 
